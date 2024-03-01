@@ -36,6 +36,7 @@ void runUserInput()
 
     string command;
     LinkedList commandList;
+    vector<string> args;
 
     while (getline(cin, command))   //while user input is coming in get the commands
     {
@@ -45,7 +46,7 @@ void runUserInput()
         }
         else if (!command.empty())
         {
-            vector<string> args = tokenizeCommand(command); //tokenize the command 
+            args = tokenizeCommand(command);                //tokenize the command 
             fillCommandList(args, commandList);             //fill in commandlist with line of commands
         }
 
@@ -61,6 +62,7 @@ void runFileInput(ifstream& fileIn)
 {
     string command;
     LinkedList commandList;
+    vector<string> args;
 
     while (getline(fileIn, command))
     {
@@ -70,7 +72,7 @@ void runFileInput(ifstream& fileIn)
         }
         else if (!command.empty())
         {
-            vector<string> args = tokenizeCommand(command); //tokenize the line of commands 
+            args = tokenizeCommand(command);                //tokenize the line of commands 
             fillCommandList(args, commandList);             //fill in the command list
         }
 
@@ -89,7 +91,21 @@ vector<string> tokenizeCommand(const string& command)
 
     while (iss >> arg)  //token read the command to fill in args
     {
-        args.push_back(arg);
+        size_t pos;
+        while ((pos = arg.find_first_of("&|")) != string::npos) //look for special characters
+        {
+            if (pos > 0)
+            {
+                args.push_back(arg.substr(0, pos)); //add the part before special character
+            }
+            args.push_back(arg.substr(pos, 1)); //add the special character
+            arg.erase(0, pos + 1); //remove processed part to continue processing
+        }
+
+        if (!arg.empty())
+        {
+            args.push_back(arg); //add whatever is left to the vector
+        }
     }
 
     return args;
