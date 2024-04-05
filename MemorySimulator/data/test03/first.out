@@ -1,0 +1,186 @@
+t = 0: Process 1 arrives
+	Input Queue:[1 ]
+	Memory map:
+		0-1999: Hole
+        Process 2 arrives
+	Input Queue:[1 2 ]
+	Memory map:
+		0-1999: Hole
+        Process 3 arrives
+	Input Queue:[1 2 3 ]
+	Memory map:
+		0-1999: Hole
+        Process 4 arrives
+	Input Queue:[1 2 3 4 ]
+	Memory map:
+		0-1999: Hole
+        Process 5 arrives
+	Input Queue:[1 2 3 4 5 ]
+	Memory map:
+		0-1999: Hole
+        Process 6 arrives
+	Input Queue:[1 2 3 4 5 6 ]
+	Memory map:
+		0-1999: Hole
+	MM moves process 1 to memory
+	Memory map:
+		0-399: Process 1
+		400-1999: Hole
+	MM moves process 2 to memory
+	Memory map:
+		0-399: Process 1
+		400-599: Process 2
+		600-1999: Hole
+	MM moves process 3 to memory
+	Memory map:
+		0-399: Process 1
+		400-599: Process 2
+		600-899: Process 3
+		900-1999: Hole
+	MM moves process 4 to memory
+	Memory map:
+		0-399: Process 1
+		400-599: Process 2
+		600-899: Process 3
+		900-999: Process 4
+		1000-1999: Hole
+	MM moves process 5 to memory
+	Memory map:
+		0-399: Process 1
+		400-599: Process 2
+		600-899: Process 3
+		900-999: Process 4
+		1000-1499: Process 5
+		1500-1999: Hole
+	MM moves process 6 to memory
+	Memory map:
+		0-399: Process 1
+		400-599: Process 2
+		600-899: Process 3
+		900-999: Process 4
+		1000-1499: Process 5
+		1500-1899: Process 6
+		1900-1999: Hole
+t = 200: Process 5 completes
+	Memory map:
+		0-399: Process 1
+		400-599: Process 2
+		600-899: Process 3
+		900-999: Process 4
+		1000-1499: Hole
+		1500-1899: Process 6
+		1900-1999: Hole
+         Process 3 completes
+	Memory map:
+		0-399: Process 1
+		400-599: Process 2
+		600-899: Hole
+		900-999: Process 4
+		1000-1499: Hole
+		1500-1899: Process 6
+		1900-1999: Hole
+         Process 1 completes
+	Memory map:
+		0-399: Hole
+		400-599: Process 2
+		600-899: Hole
+		900-999: Process 4
+		1000-1499: Hole
+		1500-1899: Process 6
+		1900-1999: Hole
+t = 500: Process 7 arrives
+	Input Queue:[7 ]
+	Memory map:
+		0-399: Hole
+		400-599: Process 2
+		600-899: Hole
+		900-999: Process 4
+		1000-1499: Hole
+		1500-1899: Process 6
+		1900-1999: Hole
+	MM moves process 7 to memory
+	Memory map:
+		0-299: Process 7
+		300-399: Hole
+		400-599: Process 2
+		600-899: Hole
+		900-999: Process 4
+		1000-1499: Hole
+		1500-1899: Process 6
+		1900-1999: Hole
+t = 600: Process 8 arrives
+	Input Queue:[8 ]
+	Memory map:
+		0-299: Process 7
+		300-399: Hole
+		400-599: Process 2
+		600-899: Hole
+		900-999: Process 4
+		1000-1499: Hole
+		1500-1899: Process 6
+		1900-1999: Hole
+	MM moves process 8 to memory
+	Memory map:
+		0-299: Process 7
+		300-399: Hole
+		400-599: Process 2
+		600-899: Hole
+		900-999: Process 4
+		1000-1499: Process 8
+		1500-1899: Process 6
+		1900-1999: Hole
+t = 700: Process 9 arrives
+	Input Queue:[9 ]
+	Memory map:
+		0-299: Process 7
+		300-399: Hole
+		400-599: Process 2
+		600-899: Hole
+		900-999: Process 4
+		1000-1499: Process 8
+		1500-1899: Process 6
+		1900-1999: Hole
+t = 2000: Process 7 completes
+	Memory map:
+		0-399: Hole
+		400-599: Process 2
+		600-899: Hole
+		900-999: Process 4
+		1000-1499: Process 8
+		1500-1899: Process 6
+		1900-1999: Hole
+          Process 6 completes
+	Memory map:
+		0-399: Hole
+		400-599: Process 2
+		600-899: Hole
+		900-999: Process 4
+		1000-1499: Process 8
+		1500-1999: Hole
+          Process 4 completes
+	Memory map:
+		0-399: Hole
+		400-599: Process 2
+		600-999: Hole
+		1000-1499: Process 8
+		1500-1999: Hole
+          Process 2 completes
+	Memory map:
+		0-999: Hole
+		1000-1499: Process 8
+		1500-1999: Hole
+	MM moves process 9 to memory
+	Memory map:
+		0-399: Process 9
+		400-999: Hole
+		1000-1499: Process 8
+		1500-1999: Hole
+t = 2100: Process 8 completes
+	Memory map:
+		0-399: Process 9
+		400-1999: Hole
+t = 2500: Process 9 completes
+	Memory map:
+		0-1999: Hole
+Average turnaround: 1266.67 (11400/9)
+

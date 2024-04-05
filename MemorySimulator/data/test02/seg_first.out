@@ -1,0 +1,221 @@
+t = 0: Process 1 arrives
+	Input Queue:[1 ]
+	Memory map:
+		0-1999: Hole
+        Process 2 arrives
+	Input Queue:[1 2 ]
+	Memory map:
+		0-1999: Hole
+	MM moves process 1 to memory
+	Memory map:
+		0-199: Process 1, Segment 0
+		200-399: Process 1, Segment 1
+		400-1999: Hole
+	MM moves process 2 to memory
+	Memory map:
+		0-199: Process 1, Segment 0
+		200-399: Process 1, Segment 1
+		400-599: Process 2, Segment 0
+		600-799: Process 2, Segment 1
+		800-999: Process 2, Segment 2
+		1000-1999: Hole
+t = 100: Process 3 arrives
+	Input Queue:[3 ]
+	Memory map:
+		0-199: Process 1, Segment 0
+		200-399: Process 1, Segment 1
+		400-599: Process 2, Segment 0
+		600-799: Process 2, Segment 1
+		800-999: Process 2, Segment 2
+		1000-1999: Hole
+        Process 4 arrives
+	Input Queue:[3 4 ]
+	Memory map:
+		0-199: Process 1, Segment 0
+		200-399: Process 1, Segment 1
+		400-599: Process 2, Segment 0
+		600-799: Process 2, Segment 1
+		800-999: Process 2, Segment 2
+		1000-1999: Hole
+	MM moves process 3 to memory
+	Memory map:
+		0-199: Process 1, Segment 0
+		200-399: Process 1, Segment 1
+		400-599: Process 2, Segment 0
+		600-799: Process 2, Segment 1
+		800-999: Process 2, Segment 2
+		1000-1049: Process 3, Segment 0
+		1050-1299: Process 3, Segment 1
+		1300-1999: Hole
+	MM moves process 4 to memory
+	Memory map:
+		0-199: Process 1, Segment 0
+		200-399: Process 1, Segment 1
+		400-599: Process 2, Segment 0
+		600-799: Process 2, Segment 1
+		800-999: Process 2, Segment 2
+		1000-1049: Process 3, Segment 0
+		1050-1299: Process 3, Segment 1
+		1300-1499: Process 4, Segment 0
+		1500-1999: Hole
+t = 200: Process 5 arrives
+	Input Queue:[5 ]
+	Memory map:
+		0-199: Process 1, Segment 0
+		200-399: Process 1, Segment 1
+		400-599: Process 2, Segment 0
+		600-799: Process 2, Segment 1
+		800-999: Process 2, Segment 2
+		1000-1049: Process 3, Segment 0
+		1050-1299: Process 3, Segment 1
+		1300-1499: Process 4, Segment 0
+		1500-1999: Hole
+	MM moves process 5 to memory
+	Memory map:
+		0-199: Process 1, Segment 0
+		200-399: Process 1, Segment 1
+		400-599: Process 2, Segment 0
+		600-799: Process 2, Segment 1
+		800-999: Process 2, Segment 2
+		1000-1049: Process 3, Segment 0
+		1050-1299: Process 3, Segment 1
+		1300-1499: Process 4, Segment 0
+		1500-1749: Process 5, Segment 0
+		1750-1999: Process 5, Segment 1
+t = 1000: Process 5 completes
+	Memory map:
+		0-199: Process 1, Segment 0
+		200-399: Process 1, Segment 1
+		400-599: Process 2, Segment 0
+		600-799: Process 2, Segment 1
+		800-999: Process 2, Segment 2
+		1000-1049: Process 3, Segment 0
+		1050-1299: Process 3, Segment 1
+		1300-1499: Process 4, Segment 0
+		1500-1999: Hole
+          Process 3 completes
+	Memory map:
+		0-199: Process 1, Segment 0
+		200-399: Process 1, Segment 1
+		400-599: Process 2, Segment 0
+		600-799: Process 2, Segment 1
+		800-999: Process 2, Segment 2
+		1000-1299: Hole
+		1300-1499: Process 4, Segment 0
+		1500-1999: Hole
+          Process 1 completes
+	Memory map:
+		0-399: Hole
+		400-599: Process 2, Segment 0
+		600-799: Process 2, Segment 1
+		800-999: Process 2, Segment 2
+		1000-1299: Hole
+		1300-1499: Process 4, Segment 0
+		1500-1999: Hole
+t = 1200: Process 6 arrives
+	Input Queue:[6 ]
+	Memory map:
+		0-399: Hole
+		400-599: Process 2, Segment 0
+		600-799: Process 2, Segment 1
+		800-999: Process 2, Segment 2
+		1000-1299: Hole
+		1300-1499: Process 4, Segment 0
+		1500-1999: Hole
+	MM moves process 6 to memory
+	Memory map:
+		0-249: Process 6, Segment 0
+		250-399: Hole
+		400-599: Process 2, Segment 0
+		600-799: Process 2, Segment 1
+		800-999: Process 2, Segment 2
+		1000-1299: Hole
+		1300-1499: Process 4, Segment 0
+		1500-1999: Hole
+t = 1500: Process 7 arrives
+	Input Queue:[7 ]
+	Memory map:
+		0-249: Process 6, Segment 0
+		250-399: Hole
+		400-599: Process 2, Segment 0
+		600-799: Process 2, Segment 1
+		800-999: Process 2, Segment 2
+		1000-1299: Hole
+		1300-1499: Process 4, Segment 0
+		1500-1999: Hole
+	MM moves process 7 to memory
+	Memory map:
+		0-249: Process 6, Segment 0
+		250-349: Process 7, Segment 2
+		350-399: Hole
+		400-599: Process 2, Segment 0
+		600-799: Process 2, Segment 1
+		800-999: Process 2, Segment 2
+		1000-1199: Process 7, Segment 0
+		1200-1299: Hole
+		1300-1499: Process 4, Segment 0
+		1500-1799: Process 7, Segment 1
+		1800-1999: Process 7, Segment 3
+t = 1600: Process 8 arrives
+	Input Queue:[8 ]
+	Memory map:
+		0-249: Process 6, Segment 0
+		250-349: Process 7, Segment 2
+		350-399: Hole
+		400-599: Process 2, Segment 0
+		600-799: Process 2, Segment 1
+		800-999: Process 2, Segment 2
+		1000-1199: Process 7, Segment 0
+		1200-1299: Hole
+		1300-1499: Process 4, Segment 0
+		1500-1799: Process 7, Segment 1
+		1800-1999: Process 7, Segment 3
+	MM moves process 8 to memory
+	Memory map:
+		0-249: Process 6, Segment 0
+		250-349: Process 7, Segment 2
+		350-399: Hole
+		400-599: Process 2, Segment 0
+		600-799: Process 2, Segment 1
+		800-999: Process 2, Segment 2
+		1000-1199: Process 7, Segment 0
+		1200-1299: Process 8, Segment 0
+		1300-1499: Process 4, Segment 0
+		1500-1799: Process 7, Segment 1
+		1800-1999: Process 7, Segment 3
+t = 2000: Process 7 completes
+	Memory map:
+		0-249: Process 6, Segment 0
+		250-399: Hole
+		400-599: Process 2, Segment 0
+		600-799: Process 2, Segment 1
+		800-999: Process 2, Segment 2
+		1000-1199: Hole
+		1200-1299: Process 8, Segment 0
+		1300-1499: Process 4, Segment 0
+		1500-1999: Hole
+          Process 4 completes
+	Memory map:
+		0-249: Process 6, Segment 0
+		250-399: Hole
+		400-599: Process 2, Segment 0
+		600-799: Process 2, Segment 1
+		800-999: Process 2, Segment 2
+		1000-1199: Hole
+		1200-1299: Process 8, Segment 0
+		1300-1999: Hole
+          Process 2 completes
+	Memory map:
+		0-249: Process 6, Segment 0
+		250-1199: Hole
+		1200-1299: Process 8, Segment 0
+		1300-1999: Hole
+t = 2100: Process 8 completes
+	Memory map:
+		0-249: Process 6, Segment 0
+		250-1999: Hole
+t = 3000: Process 6 completes
+	Memory map:
+		0-1999: Hole
+Average turnaround: 1175.00 
+
