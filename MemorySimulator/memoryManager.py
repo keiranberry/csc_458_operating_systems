@@ -47,14 +47,14 @@ class ContiguousMemoryManager:
 
 class PagingMemoryManager: 
     def __init__(self, totalMemory, frameSize): 
-        self.frameSize = frameSize
-        self.freeFrames = int(totalMemory / frameSize)
+        self.frameSize = int(frameSize)
+        self.freeFrames = int(int(totalMemory) / self.frameSize)
         emptyFrame = Process(None, None, None, None)
         self.memoryMap = [emptyFrame for _ in range(self.freeFrames)]
 
     def allocate(self, process):
         framesNeeded = math.ceil(process.totalMemory / self.frameSize)
-        if framesNeeded < self.freeFrames:  
+        if framesNeeded > self.freeFrames:  
             return -1
         else:
             framesAllocated = 0
@@ -67,8 +67,10 @@ class PagingMemoryManager:
             self.freeFrames -= framesAllocated
             return framesAllocated
         
+        
     def deallocate(self, process):
         for i, frame in enumerate(self.memoryMap):
             if frame.id == process.id:
                 self.memoryMap[i] = Process(None, None, None, None)
+                self.freeFrames += 1
         

@@ -1,4 +1,6 @@
 from process import Process
+from discreteEventSimulation import DiscreteEventSimulation
+from discreteEventSimulation import Event
 
 def readFile(filename):
     inputQueue = []
@@ -25,13 +27,20 @@ def main():
         algorithm = input("Fit algorithm (1 - first-fit, 2 - best-fit, 3 - worst-fit): ")
     else:
         frameSize = input("Page size: ")
+        simulation = DiscreteEventSimulation(memSize, frameSize)
 
-    # Read workload file
-    filename = input("Enter workload file name: ")
-    input_queue = readFile(filename)
-    print("Processes loaded into input queue:")
-    for process in input_queue:
-        print(process)
+        # Read workload file
+        filename = input("Enter workload file name: ")
+        input_queue = readFile(filename)
+        print("Processes loaded into input queue:")
+        for process in input_queue:
+            print(process)
+
+        for process in input_queue:
+            simulation.schedule_event(Event(process.arrivalTime, 'PROCESS_ARRIVAL', process))
+
+        # Run simulation
+        simulation.run_simulation(input_queue)
 
 
 

@@ -4,7 +4,9 @@ class Process:
         self.arrivalTime = arrival_time
         self.timeInMemory = time_in_memory
         self.memoryArray = memory_array
-        self.totalMemory = sum(memory_array)
+        if self.memoryArray is not None:
+            self.totalMemory = sum(memory_array)
+        else: self.totalMemory = None
         self.startMemory = start_memory
         self.endMemory = end_memory
 
