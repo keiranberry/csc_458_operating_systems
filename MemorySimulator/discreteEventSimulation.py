@@ -2,35 +2,56 @@ from queue import PriorityQueue
 from process import Process
 from memoryManager import PagingMemoryManager
 from memoryManager import ContiguousMemoryManager
+from memoryManager import SegmentationMemoryManager
 import math
 
 class DiscreteEventSimulation:
-    def __init__(self, total_memory, frame_size):
+    def __init__(self, total_memory, managerType, extraInfo):
         self.clock = 0
         self.event_queue = PriorityQueue()
-        self.memory_manager = PagingMemoryManager(total_memory, frame_size)
+        if managerType == "PAG":
+            self.memory_manager = PagingMemoryManager(total_memory, extraInfo)
+        elif managerType == "VSP":
+            self.memory_manager = ContiguousMemoryManager(total_memory, extraInfo)
+        else:
+            self.memory_manager = SegmentationMemoryManager(total_memory, extraInfo)
+        self.inputQueue = []
 
     def schedule_event(self, event):
         self.event_queue.put(event)
 
-    def run_simulation(self, input_queue):
+    def run_simulation(self):
+        print("t = 0: ", end = "")
         while not self.event_queue.empty():
             event = self.event_queue.get()
             if self.clock < event.time:
                 self.clock = event.time
+                print(f"t = {self.clock}: ", end = "")
             if event.event_type == 'PROCESS_ARRIVAL':
                 self.process_arrival(event.process)
+            elif event.event_type == 'PROCESS_ALLOCATION':
+                self.process_allocation(event.process)
             elif event.event_type == 'PROCESS_COMPLETION':
                 self.process_completion(event.process)
             elif event.event_type == 'MEMORY_DEALLOCATION':
                 self.memory_deallocation(event.process)
 
     def process_arrival(self, process):
+        self.schedule_event(Event(self.clock, 'PROCESS_ALLOCATION', process))
+        print(f"\tProcess {process.id} arrives")
+        self.inputQueue.append(process)
+        self.printQueue()
+
+
+    def process_allocation(self, process):
         frames_allocated = self.memory_manager.allocate(process)
         if frames_allocated == -1:
-            print(f"Not enough memory to allocate for Process {process.id} at time {self.clock}")
+            print(f"\tNot enough memory to allocate for Process {process.id} at time {self.clock}")
         else:
-            print(f"Process {process.id} allocated {frames_allocated} frames at time {self.clock}")
+            print(f"\tMM moves process {process.id} to memory")
+            self.inputQueue.remove(process)
+            self.printQueue()
+            self.memory_manager.printMemoryMap()
 
         # Schedule process completion event
         completion_time = self.clock + process.timeInMemory
@@ -39,12 +60,22 @@ class DiscreteEventSimulation:
     def process_completion(self, process):
         # Deallocate memory occupied by the completed process
         self.memory_manager.deallocate(process)
-        print(f"Process {process.id} completed at time {self.clock}")
+        print(f"\tProcess {process.id} completes")
+        self.memory_manager.printMemoryMap()
 
 
     def memory_deallocation(self, process):
         self.memory_manager.deallocate(process)
-        print(f"Memory deallocated for Process {process.id} at time {self.clock}")
+        print(f"\tMemory deallocated for Process {process.id} at time {self.clock}")
+
+    def printQueue(self):
+        print("\tInput Queue:[", end = "")
+        for i in range(len(self.inputQueue)):
+            if i == len(self.inputQueue) - 1:
+                print(self.inputQueue[i].id, end="")
+            else:
+                print(self.inputQueue[i].id, end = " ")
+        print("]")
 
 
 class Event:
@@ -54,10 +85,24 @@ class Event:
         self.process = process
 
     def __lt__(self, other):
-        return self.time < other.time
+        if self.time == other.time:
+            if self.event_type != other.event_type:
+                event_order = {
+                    'PROCESS_ARRIVAL': 0,
+                    'PROCESS_ALLOCATION': 1,
+                    'PROCESS_COMPLETION': 2
+                }
+                return event_order[self.event_type] < event_order[other.event_type]
+            elif self.process.id != other.process.id:
+                return self.process.id < other.process.id
+            else:
+                return False
+        else:
+            return self.time < other.time
     
     def __gt__(self, other):
-        return self.time > other.time
+        return other.__lt__(self)
 
     def __eq__(self, other):
-        return self.time == other.time
+        return self.time == other.time and self.event_type == other.event_type and self.process.id == other.process.id
+

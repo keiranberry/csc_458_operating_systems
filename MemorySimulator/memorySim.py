@@ -25,9 +25,13 @@ def main():
 
     if policy != "2":
         algorithm = input("Fit algorithm (1 - first-fit, 2 - best-fit, 3 - worst-fit): ")
+        if policy == "1":
+            simulation = DiscreteEventSimulation(memSize, "VSP", algorithm)
+        else: 
+            simulation = DiscreteEventSimulation(memSize, "SEG", algorithm)
     else:
         frameSize = input("Page size: ")
-        simulation = DiscreteEventSimulation(memSize, frameSize)
+        simulation = DiscreteEventSimulation(memSize, "PAG", frameSize)
 
         # Read workload file
         filename = input("Enter workload file name: ")
@@ -40,7 +44,7 @@ def main():
             simulation.schedule_event(Event(process.arrivalTime, 'PROCESS_ARRIVAL', process))
 
         # Run simulation
-        simulation.run_simulation(input_queue)
+        simulation.run_simulation()
 
 
 
