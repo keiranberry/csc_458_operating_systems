@@ -7,8 +7,8 @@ class Process:
         if self.memoryArray is not None:
             self.totalMemory = sum(memory_array)
         else: self.totalMemory = None
-        self.startMemory = start_memory
-        self.endMemory = end_memory
+        self.startMemory = int(start_memory)
+        self.endMemory = int(end_memory)
 
     def __str__(self):
         return f"Process {self.id}: Arrival Time - {self.arrivalTime}, Time in Memory - {self.timeInMemory}, Memory Requirement - {self.totalMemory}, Memory Array - {self.memoryArray}"

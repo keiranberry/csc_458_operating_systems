@@ -24,6 +24,9 @@ class DiscreteEventSimulation:
         print("t = 0: ", end = "")
         while not self.event_queue.empty():
             event = self.event_queue.get()
+            if self.clock >= 100000:
+                print("Maximum time of 100,000 reached")
+                exit(1)
             if self.clock < event.time:
                 self.allocate_from_queue()
                 self.clock = event.time
