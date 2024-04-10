@@ -25,48 +25,43 @@ class DiscreteEventSimulation:
         while not self.event_queue.empty():
             event = self.event_queue.get()
             if self.clock < event.time:
+                self.allocate_from_queue()
                 self.clock = event.time
                 print(f"t = {self.clock}: ", end = "")
             if event.event_type == 'PROCESS_ARRIVAL':
                 self.process_arrival(event.process)
-            elif event.event_type == 'PROCESS_ALLOCATION':
-                self.process_allocation(event.process)
             elif event.event_type == 'PROCESS_COMPLETION':
                 self.process_completion(event.process)
-            elif event.event_type == 'MEMORY_DEALLOCATION':
-                self.memory_deallocation(event.process)
 
     def process_arrival(self, process):
-        self.schedule_event(Event(self.clock, 'PROCESS_ALLOCATION', process))
         print(f"\tProcess {process.id} arrives")
         self.inputQueue.append(process)
         self.printQueue()
 
 
-    def process_allocation(self, process):
-        frames_allocated = self.memory_manager.allocate(process)
-        if frames_allocated == -1:
-            print(f"\tNot enough memory to allocate for Process {process.id} at time {self.clock}")
-        else:
-            print(f"\tMM moves process {process.id} to memory")
-            self.inputQueue.remove(process)
-            self.printQueue()
-            self.memory_manager.printMemoryMap()
+    def allocate_from_queue(self):
+        # Try allocating memory for all processes in the input queue
+        processes = self.inputQueue.copy()
 
-        # Schedule process completion event
-        completion_time = self.clock + process.timeInMemory
-        self.schedule_event(Event(completion_time, 'PROCESS_COMPLETION', process))
+        for process in processes:
+            frames_allocated = self.memory_manager.allocate(process)
+            if frames_allocated == -1:
+                continue
+            else:
+                print(f"\tMM moves process {process.id} to memory")
+                self.inputQueue.remove(process)
+                self.printQueue()
+                self.memory_manager.printMemoryMap()
+
+                # Schedule process completion event
+                completion_time = self.clock + process.timeInMemory
+                self.schedule_event(Event(completion_time, 'PROCESS_COMPLETION', process))
 
     def process_completion(self, process):
         # Deallocate memory occupied by the completed process
         self.memory_manager.deallocate(process)
         print(f"\tProcess {process.id} completes")
         self.memory_manager.printMemoryMap()
-
-
-    def memory_deallocation(self, process):
-        self.memory_manager.deallocate(process)
-        print(f"\tMemory deallocated for Process {process.id} at time {self.clock}")
 
     def printQueue(self):
         print("\tInput Queue:[", end = "")

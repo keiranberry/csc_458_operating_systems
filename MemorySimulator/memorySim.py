@@ -33,18 +33,15 @@ def main():
         frameSize = input("Page size: ")
         simulation = DiscreteEventSimulation(memSize, "PAG", frameSize)
 
-        # Read workload file
-        filename = input("Enter workload file name: ")
-        input_queue = readFile(filename)
-        print("Processes loaded into input queue:")
-        for process in input_queue:
-            print(process)
+    # Read workload file
+    filename = input("Enter workload file name: ")
+    input_queue = readFile(filename)
 
-        for process in input_queue:
-            simulation.schedule_event(Event(process.arrivalTime, 'PROCESS_ARRIVAL', process))
+    for process in input_queue:
+        simulation.schedule_event(Event(process.arrivalTime, 'PROCESS_ARRIVAL', process))
 
-        # Run simulation
-        simulation.run_simulation()
+    # Run simulation
+    simulation.run_simulation()
 
 
 
