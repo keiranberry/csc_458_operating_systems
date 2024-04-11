@@ -6,16 +6,17 @@ from memoryManager import SegmentationMemoryManager
 import math
 
 class DiscreteEventSimulation:
-    def __init__(self, total_memory, managerType, extraInfo):
+    def __init__(self, totalMemory, managerType, extraInfo):
         self.clock = 0
         self.event_queue = PriorityQueue()
         if managerType == "PAG":
-            self.memory_manager = PagingMemoryManager(total_memory, extraInfo)
+            self.memory_manager = PagingMemoryManager(totalMemory, extraInfo)
         elif managerType == "VSP":
-            self.memory_manager = ContiguousMemoryManager(total_memory, extraInfo)
+            self.memory_manager = ContiguousMemoryManager(totalMemory, extraInfo)
         else:
-            self.memory_manager = SegmentationMemoryManager(total_memory, extraInfo)
+            self.memory_manager = SegmentationMemoryManager(totalMemory, extraInfo)
         self.inputQueue = []
+        self.turnaroundTimes = []
 
     def schedule_event(self, event):
         self.event_queue.put(event)
@@ -30,14 +31,16 @@ class DiscreteEventSimulation:
             if self.clock < event.time:
                 self.allocate_from_queue()
                 self.clock = event.time
-                print(f"t = {self.clock}: ", end = "")
+                print(f"\nt = {self.clock}: ", end = "")
             if event.event_type == 'PROCESS_ARRIVAL':
                 self.process_arrival(event.process)
             elif event.event_type == 'PROCESS_COMPLETION':
                 self.process_completion(event.process)
+        print(f"\nAverage Turnaround Time: {self.calculateAverage()}")
+        print()
 
     def process_arrival(self, process):
-        print(f"\tProcess {process.id} arrives")
+        print(f"Process {process.id} arrives", end = "\n\t")
         self.inputQueue.append(process)
         self.printQueue()
 
@@ -51,7 +54,7 @@ class DiscreteEventSimulation:
             if frames_allocated == -1:
                 continue
             else:
-                print(f"\tMM moves process {process.id} to memory")
+                print(f"MM moves Process {process.id} to memory", end = "\n\t")
                 self.inputQueue.remove(process)
                 self.printQueue()
                 self.memory_manager.printMemoryMap()
@@ -62,18 +65,28 @@ class DiscreteEventSimulation:
 
     def process_completion(self, process):
         # Deallocate memory occupied by the completed process
+        self.turnaroundTimes.append(int(self.clock - process.arrivalTime))
         self.memory_manager.deallocate(process)
-        print(f"\tProcess {process.id} completes")
+        print(f"Process {process.id} completes", end = "\n\t")
         self.memory_manager.printMemoryMap()
 
     def printQueue(self):
-        print("\tInput Queue:[", end = "")
+        print("Input Queue:[", end = "")
         for i in range(len(self.inputQueue)):
             if i == len(self.inputQueue) - 1:
                 print(self.inputQueue[i].id, end="")
             else:
                 print(self.inputQueue[i].id, end = " ")
-        print("]")
+        print("]", end = "\n\t")
+    
+    def calculateAverage(self):
+        if not self.turnaroundTimes:
+            return 0.0
+        
+        total = sum(self.turnaroundTimes)
+        average = total / len(self.turnaroundTimes)
+        return round(average, 1)
+
 
 
 class Event:

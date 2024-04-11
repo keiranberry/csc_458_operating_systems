@@ -14,79 +14,101 @@ class ContiguousMemoryManager:
 
     def allocate(self, process):
         if self.algorithm == "first-fit":
-            return self.allocate_first_fit(process)
+            return self.allocateFirstFit(process)
         elif self.algorithm == "best-fit":
-            return self.allocate_best_fit(process)
+            return self.allocateBestFit(process)
         else:
-            return self.allocate_worst_fit(process)
+            return self.allocateWorstFit(process)
 
-    def allocate_first_fit(self, process):
+    def allocateFirstFit(self, process):
         for i, block in enumerate(self.memoryMap):
             if block.id is None and (block.endMemory - block.startMemory) >= process.totalMemory - 1:
                 # Allocate memory
-                start_memory = block.startMemory
-                end_memory = start_memory + process.totalMemory - 1
-                self.memoryMap[i] = Process(process.id, process.arrivalTime, process.timeInMemory, process.memoryArray, start_memory, end_memory)
+                startMem = block.startMemory
+                endMem = startMem + process.totalMemory - 1
+                self.memoryMap[i] = Process(process.id, process.arrivalTime, process.timeInMemory, process.memoryArray, startMem, endMem)
                 
                 # Add empty process for the remaining free memory
-                remaining_memory_start = end_memory + 1
-                remaining_memory_end = block.endMemory
-                if remaining_memory_start < remaining_memory_end:
-                    remaining_block = Process(None, None, None, None, remaining_memory_start, remaining_memory_end)
-                    self.memoryMap.insert(i + 1, remaining_block)
+                remainingMemStart = endMem + 1
+                remainingMemEnd = block.endMemory
+                if remainingMemStart < remainingMemEnd:
+                    remainingBlock = Process(None, None, None, None, remainingMemStart, remainingMemEnd)
+                    self.memoryMap.insert(i + 1, remainingBlock)
 
                 return 0  # Allocation successful
         return -1  # Not enough memory or suitable block not found
 
-    def allocate_best_fit(self, process):
-        best_fit_index = -1
-        min_free_memory = float('inf')
-        for i, block in enumerate(self.memoryMap):
-            if block.id is None and block.totalMemory >= process.totalMemory:
-                if block.totalMemory - process.totalMemory < min_free_memory:
-                    best_fit_index = i
-                    min_free_memory = block.totalMemory - process.totalMemory
-        if best_fit_index != -1:
-            # Allocate memory
-            start_memory = self.memoryMap[best_fit_index].startMemory
-            end_memory = start_memory + process.totalMemory
-            self.memoryMap[best_fit_index] = Process(process.id, process.arrivalTime, process.timeInMemory, process.memoryArray, start_memory, end_memory)
-            return 0  # Allocation successful
-        else:
-            return -1  # Not enough memory or suitable block not found
+    def allocateBestFit(self, process):
+        bestFitIndex = -1
+        bestFitSize = float('inf')
 
-    def allocate_worst_fit(self, process):
-        worst_fit_index = -1
-        max_free_memory = -1
         for i, block in enumerate(self.memoryMap):
-            if block.id is None and block.totalMemory >= process.totalMemory:
-                if block.totalMemory - process.totalMemory > max_free_memory:
-                    worst_fit_index = i
-                    max_free_memory = block.totalMemory - process.totalMemory
-        if worst_fit_index != -1:
+            if block.id is None and (block.endMemory - block.startMemory) >= process.totalMemory - 1:
+                blockSize = block.endMemory - block.startMemory + 1
+                if blockSize < bestFitSize:
+                    bestFitIndex = i
+                    bestFitSize = blockSize
+
+        if bestFitIndex != -1:
             # Allocate memory
-            start_memory = self.memoryMap[worst_fit_index].startMemory
-            end_memory = start_memory + process.totalMemory
-            self.memoryMap[worst_fit_index] = Process(process.id, process.arrivalTime, process.timeInMemory, process.memoryArray, start_memory, end_memory)
+            startMem = self.memoryMap[bestFitIndex].startMemory
+            endMem = startMem + process.totalMemory - 1
+            remainingMemEnd = self.memoryMap[bestFitIndex].endMemory
+            self.memoryMap[bestFitIndex] = Process(process.id, process.arrivalTime, process.timeInMemory, process.memoryArray, startMem, endMem)
+            
+            # Adjust the block if there's remaining space
+            remainingMemStart = endMem + 1
+            if remainingMemStart < remainingMemEnd:
+                remainingBlock = Process(None, None, None, None, remainingMemStart, remainingMemEnd)
+                self.memoryMap.insert(bestFitIndex + 1, remainingBlock)
+
             return 0  # Allocation successful
-        else:
-            return -1 
+
+        return -1  # Not enough memory or suitable block not found
+
+    def allocateWorstFit(self, process):
+        worstFitIndex = -1
+        worstFitSize = -1
+
+        for i, block in enumerate(self.memoryMap):
+            if block.id is None and (block.endMemory - block.startMemory) >= process.totalMemory - 1:
+                blockSize = block.endMemory - block.startMemory + 1
+                if blockSize > worstFitSize:
+                    worstFitIndex = i
+                    worstFitSize = blockSize
+
+        if worstFitIndex != -1:
+            # Allocate memory
+            startMem = self.memoryMap[worstFitIndex].startMemory
+            endMem = startMem + process.totalMemory - 1
+            remainingMemEnd = self.memoryMap[worstFitIndex].endMemory
+            self.memoryMap[worstFitIndex] = Process(process.id, process.arrivalTime, process.timeInMemory, process.memoryArray, startMem, endMem)
+            
+            # Adjust the block if there's remaining space
+            remainingMemStart = endMem + 1
+            if remainingMemStart < remainingMemEnd:
+                remainingBlock = Process(None, None, None, None, remainingMemStart, remainingMemEnd)
+                self.memoryMap.insert(worstFitIndex + 1, remainingBlock)
+
+            return 0  # Allocation successful
+
+        return -1  # Not enough memory or suitable block not found
 
     def deallocate(self, processToDeallocate):
         # Find the process to deallocate
-        process_index = -1
+        processIndex = -1
 
         for i, process in enumerate(self.memoryMap):
             if process.id == processToDeallocate.id:
-                process_index = i
+                processIndex = i
                 break
         
         # If the process is not found, return
-        if process_index == -1:
-            print(f"Process {processToDeallocate.id} not found.")
+        if processIndex == -1:
+            print(f"Process {processToDeallocate.id} not found.", end = "\n\t")
             return
         
-        self.memoryMap[process_index].id = None
+        self.memoryMap[processIndex].id = None
         self.collapseHoles()
 
     
@@ -111,17 +133,18 @@ class ContiguousMemoryManager:
                 
 
     def printMemoryMap(self):
-        print("\tMemory map:")
+        print("Memory Map:", end = "\n\t")
         for process in self.memoryMap:
             if process.id is not None:
-                print(f"\t\t{process.startMemory} - {process.endMemory}: Process {process.id}")
+                print(f"\t{process.startMemory}-{process.endMemory}: Process {process.id}", end = "\n\t")
             else:
-                print(f"\t\t{process.startMemory} - {process.endMemory}: Hole")
+                print(f"\t{process.startMemory}-{process.endMemory}: Hole", end = "\n\t")
 
 
 class PagingMemoryManager: 
     def __init__(self, totalMemory, frameSize): 
         self.frameSize = int(frameSize)
+        self.totalMemory = int(totalMemory)
         self.freeFrames = int(int(totalMemory) / self.frameSize)
         emptyFrame = Process(None, None, None, None)
         self.memoryMap = [emptyFrame for _ in range(self.freeFrames)]
@@ -147,24 +170,41 @@ class PagingMemoryManager:
             if frame.id == process.id:
                 self.memoryMap[i] = Process(None, None, None, None)
                 self.freeFrames += 1
-        
-    def printMemoryMap(self):
-        print("Memory Map:")
-        start_address = 0
-        end_address = self.frameSize - 1
 
-        for i, frame in enumerate(self.memoryMap):
+    def printMemoryMap(self):
+        print("Memory Map:", end = "\n\t")
+        startAddress = 0
+        endAddress = self.frameSize - 1
+        frameCounts = {}
+
+        i = 0
+        while i < len(self.memoryMap):
+            if startAddress > self.totalMemory - 1:
+                        break
+            frame = self.memoryMap[i]
             if frame.id is not None:
-                print(f"\t{start_address}-{end_address}: Process {frame.id}, Page {i + 1}")
+                frameCounts[frame.id] = frameCounts.get(frame.id, 0) + 1
+                print(f"\t{startAddress}-{endAddress}: Process {frame.id}, Page {frameCounts[frame.id]}", end = "\n\t")
+                startAddress += self.frameSize
+                endAddress += self.frameSize
+                i += 1
             else:
-                print(f"\t{start_address}-{end_address}: Free Frame(s)")
-            start_address += self.frameSize
-            end_address += self.frameSize
+                startFreeAddress = startAddress
+                endAddress = startAddress - 1
+                while i < len(self.memoryMap) and self.memoryMap[i].id is None:
+                    if endAddress > self.totalMemory - 1:
+                        endAddress = self.totalMemory - 1
+                        break
+                    i += 1
+                    endAddress += self.frameSize
+                print(f"\t{startFreeAddress}-{endAddress}: Free Frame(s)", end = "\n\t")
+                startAddress = endAddress + 1
+                endAddress = startAddress + self.frameSize - 1
 
 class SegmentationMemoryManager:
     def __init__(self, totalMemory, algorithm):
-        self.memorySize = totalMemory
-        self.memoryMap = [Process(None, None, None, None, 0, totalMemory)]
+        self.memorySize = int(totalMemory)
+        self.memoryMap = [Process(None, None, None, None, 0, int(totalMemory) - 1)]
         if algorithm == "1":
             self.algorithm = "first-fit"
         elif algorithm == "2":
@@ -173,39 +213,130 @@ class SegmentationMemoryManager:
             self.algorithm = "worst-fit"
 
     def allocate(self, process):
-        # Implement allocation algorithm based on user's choice
-        pass
+        if self.algorithm == "first-fit":
+            return self.allocateFirstFit(process)
+        elif self.algorithm == "best-fit":
+            return self.allocateBestFit(process)
+        else:
+            return self.allocateWorstFit(process)
 
-    def deallocate(self, processId):
+    def allocateFirstFit(self, process):
+        for i, block in enumerate(self.memoryMap):
+            if block.id is None and (block.endMemory - block.startMemory) >= process.totalMemory - 1:
+                # Allocate memory
+                startMem = block.startMemory
+                endMem = startMem + process.totalMemory - 1
+                self.memoryMap[i] = Process(process.id, process.arrivalTime, process.timeInMemory, process.memoryArray, startMem, endMem)
+                
+                # Add empty process for the remaining free memory
+                remainingMemStart = endMem + 1
+                remainingMemEnd = block.endMemory
+                if remainingMemStart < remainingMemEnd:
+                    remainingBlock = Process(None, None, None, None, remainingMemStart, remainingMemEnd)
+                    self.memoryMap.insert(i + 1, remainingBlock)
+
+                return 0  # Allocation successful
+        return -1  # Not enough memory or suitable block not found
+
+    def allocateBestFit(self, process):
+        bestFitIndex = -1
+        bestFitSize = float('inf')
+
+        for i, block in enumerate(self.memoryMap):
+            if block.id is None and (block.endMemory - block.startMemory) >= process.totalMemory - 1:
+                blockSize = block.endMemory - block.startMemory + 1
+                if blockSize < bestFitSize:
+                    bestFitIndex = i
+                    bestFitSize = blockSize
+
+        if bestFitIndex != -1:
+            # Allocate memory
+            startMem = self.memoryMap[bestFitIndex].startMemory
+            endMem = startMem + process.totalMemory - 1
+            remainingMemEnd = self.memoryMap[bestFitIndex].endMemory
+            self.memoryMap[bestFitIndex] = Process(process.id, process.arrivalTime, process.timeInMemory, process.memoryArray, startMem, endMem)
+            
+            # Adjust the block if there's remaining space
+            remainingMemStart = endMem + 1
+            if remainingMemStart < remainingMemEnd:
+                remainingBlock = Process(None, None, None, None, remainingMemStart, remainingMemEnd)
+                self.memoryMap.insert(bestFitIndex + 1, remainingBlock)
+
+            return 0  # Allocation successful
+
+        return -1  # Not enough memory or suitable block not found
+
+    def allocateWorstFit(self, process):
+        worstFitIndex = -1
+        worstFitSize = -1
+
+        for i, block in enumerate(self.memoryMap):
+            if block.id is None and (block.endMemory - block.startMemory) >= process.totalMemory - 1:
+                blockSize = block.endMemory - block.startMemory + 1
+                if blockSize > worstFitSize:
+                    worstFitIndex = i
+                    worstFitSize = blockSize
+
+        if worstFitIndex != -1:
+            # Allocate memory
+            startMem = self.memoryMap[worstFitIndex].startMemory
+            endMem = startMem + process.totalMemory - 1
+            remainingMemEnd = self.memoryMap[worstFitIndex].endMemory
+            self.memoryMap[worstFitIndex] = Process(process.id, process.arrivalTime, process.timeInMemory, process.memoryArray, startMem, endMem)
+            
+            # Adjust the block if there's remaining space
+            remainingMemStart = endMem + 1
+            if remainingMemStart < remainingMemEnd:
+                remainingBlock = Process(None, None, None, None, remainingMemStart, remainingMemEnd)
+                self.memoryMap.insert(worstFitIndex + 1, remainingBlock)
+
+            return 0  # Allocation successful
+
+        return -1  # Not enough memory or suitable block not found
+
+    def deallocate(self, processToDeallocate):
         # Find the process to deallocate
-        process_index = -1
+        processIndex = -1
+
         for i, process in enumerate(self.memoryMap):
-            if process.id == processId:
-                process_index = i
+            if process.id == processToDeallocate.id:
+                processIndex = i
                 break
         
         # If the process is not found, return
-        if process_index == -1:
-            print(f"Process with id {processId} not found.")
+        if processIndex == -1:
+            print(f"Process {processToDeallocate.id} not found.", end = "\n\t")
             return
+        
+        self.memoryMap[processIndex].id = None
+        self.collapseHoles()
 
-        # Update start and end memory addresses
-        start_memory = self.memoryMap[process_index].startMemory
-        end_memory = self.memoryMap[process_index].endMemory
+    
+    def collapseHoles(self):
+        consecutiveHoles = 0
+        for i in range (len(self.memoryMap)):
+            if self.memoryMap[i].id is None:
+                firstHole = i
 
-        # Check memory block before the deallocated process
-        if process_index > 0 and self.memoryMap[process_index - 1].id is None:
-            start_memory = self.memoryMap[process_index - 1].startMemory
-            del self.memoryMap[process_index - 1]
-
-        # Check memory block after the deallocated process
-        if process_index < len(self.memoryMap) - 1 and self.memoryMap[process_index + 1].id is None:
-            end_memory = self.memoryMap[process_index + 1].endMemory
-            del self.memoryMap[process_index + 1]
-
-        # Replace deallocated process with new empty process
-        self.memoryMap[process_index] = Process(None, None, None, None, start_memory, end_memory)
+                while(i < len(self.memoryMap) and self.memoryMap[i].id == None):
+                    consecutiveHoles += 1
+                    i += 1
+                i -= 1
+                start = self.memoryMap[firstHole].startMemory
+                end = self.memoryMap[i].endMemory
+                while i > firstHole:
+                    self.memoryMap.pop(i)
+                    i -= 1
+                self.memoryMap[i] = Process(None, None, None, None, start, end)
+            if i == len(self.memoryMap) - 1:
+                return
+                
 
     def printMemoryMap(self):
+        print("Memory Map:", end = "\n\t")
         for process in self.memoryMap:
-            print(process)
+            if process.id is not None:
+                print(f"\t{process.startMemory}-{process.endMemory}: Process {process.id}", end = "\n\t")
+            else:
+                print(f"\t{process.startMemory}-{process.endMemory}: Hole", end = "\n\t")
+
