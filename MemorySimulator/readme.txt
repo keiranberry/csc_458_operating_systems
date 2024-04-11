@@ -5,7 +5,7 @@ Paging, and Segmentation (first-fit, best-fit, and worst-fit).
 
 Usage for this program is as follows: 
 
-From the directory of the program, type "Python3 MemorySim.py" into the console. The user 
+From the directory of the program, type "python3 MemorySim.py" into the console. The user 
 will be prompted for information regarding the simulation, and then the simulation will be 
 run. Important information about the simulation will be output to the console, and it has 
 been checked for consistency (except for very minor whitespace) with the provided test files.
