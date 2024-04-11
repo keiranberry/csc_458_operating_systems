@@ -24,17 +24,28 @@ class DiscreteEventSimulation:
         print("t = 0: ", end = "")
         while not self.event_queue.empty():
             event = self.event_queue.get()
+            
             if self.clock >= 100000:
                 print("Maximum time of 100,000 reached")
                 exit(1)
+
             if self.clock < event.time:
                 self.allocate_from_queue()
+
+                # put the event back on and get the first event again
+                # this covers an edge case where a process finishes before
+                # the next time stamp
+                self.event_queue.put(event)
+                event = self.event_queue.get()
                 self.clock = event.time
                 print(f"\nt = {self.clock}: ", end = "")
             if event.event_type == 'PROCESS_ARRIVAL':
                 self.process_arrival(event.process)
             elif event.event_type == 'PROCESS_COMPLETION':
                 self.process_completion(event.process)
+            if self.event_queue.empty():
+                # make sure we dont have leftover processes waiting
+                self.allocate_from_queue()
         print(f"\nAverage Turnaround Time: {self.calculateAverage()}")
         print()
 
@@ -45,7 +56,7 @@ class DiscreteEventSimulation:
 
 
     def allocate_from_queue(self):
-        # Try allocating memory for all processes in the input queue
+        # make a copy so we can change our input queue and not mess up iterating
         processes = self.inputQueue.copy()
 
         for process in processes:
@@ -58,12 +69,12 @@ class DiscreteEventSimulation:
                 self.printQueue()
                 self.memory_manager.printMemoryMap()
 
-                # Schedule process completion event
+                # schedule event for process completing
                 completion_time = self.clock + process.timeInMemory
                 self.schedule_event(Event(completion_time, 'PROCESS_COMPLETION', process))
 
     def process_completion(self, process):
-        # Deallocate memory occupied by the completed process
+        # deallocate memory from the completed process
         self.turnaroundTimes.append(int(self.clock - process.arrivalTime))
         self.memory_manager.deallocate(process)
         print(f"Process {process.id} completes", end = "\n\t")

@@ -22,26 +22,27 @@ class ContiguousMemoryManager:
     def allocateFirstFit(self, process):
         for i, block in enumerate(self.memoryMap):
             if block.id is None and (block.endMemory - block.startMemory) >= process.totalMemory - 1:
-                # Allocate memory
+                # allocate memory
                 startMem = block.startMemory
                 endMem = startMem + process.totalMemory - 1
                 self.memoryMap[i] = Process(process.id, process.arrivalTime, process.timeInMemory, process.memoryArray, startMem, endMem)
                 
-                # Add empty process for the remaining free memory
+                # add an empty process for the remaining free memory
                 remainingMemStart = endMem + 1
                 remainingMemEnd = block.endMemory
                 if remainingMemStart < remainingMemEnd:
                     remainingBlock = Process(None, None, None, None, remainingMemStart, remainingMemEnd)
                     self.memoryMap.insert(i + 1, remainingBlock)
 
-                return 0  # Allocation successful
-        return -1  # Not enough memory or suitable block not found
+                return 0  #  success
+        return -1  # failure
 
     def allocateBestFit(self, process):
         bestFitIndex = -1
         bestFitSize = float('inf')
 
         for i, block in enumerate(self.memoryMap):
+            # keep track of best fit location
             if block.id is None and (block.endMemory - block.startMemory) >= process.totalMemory - 1:
                 blockSize = block.endMemory - block.startMemory + 1
                 if blockSize < bestFitSize:
@@ -49,27 +50,28 @@ class ContiguousMemoryManager:
                     bestFitSize = blockSize
 
         if bestFitIndex != -1:
-            # Allocate memory
+            # allocate memory for process at best fit location
             startMem = self.memoryMap[bestFitIndex].startMemory
             endMem = startMem + process.totalMemory - 1
             remainingMemEnd = self.memoryMap[bestFitIndex].endMemory
             self.memoryMap[bestFitIndex] = Process(process.id, process.arrivalTime, process.timeInMemory, process.memoryArray, startMem, endMem)
             
-            # Adjust the block if there's remaining space
+            # add empty remaining block if there is additional space
             remainingMemStart = endMem + 1
             if remainingMemStart < remainingMemEnd:
                 remainingBlock = Process(None, None, None, None, remainingMemStart, remainingMemEnd)
                 self.memoryMap.insert(bestFitIndex + 1, remainingBlock)
 
-            return 0  # Allocation successful
+            return 0  # success
 
-        return -1  # Not enough memory or suitable block not found
+        return -1  # failure
 
     def allocateWorstFit(self, process):
         worstFitIndex = -1
         worstFitSize = -1
 
         for i, block in enumerate(self.memoryMap):
+            # keep track of worst fit location
             if block.id is None and (block.endMemory - block.startMemory) >= process.totalMemory - 1:
                 blockSize = block.endMemory - block.startMemory + 1
                 if blockSize > worstFitSize:
@@ -77,32 +79,33 @@ class ContiguousMemoryManager:
                     worstFitSize = blockSize
 
         if worstFitIndex != -1:
-            # Allocate memory
+            # allocate memory for process at worst fit location
             startMem = self.memoryMap[worstFitIndex].startMemory
             endMem = startMem + process.totalMemory - 1
             remainingMemEnd = self.memoryMap[worstFitIndex].endMemory
             self.memoryMap[worstFitIndex] = Process(process.id, process.arrivalTime, process.timeInMemory, process.memoryArray, startMem, endMem)
             
-            # Adjust the block if there's remaining space
+            # add empty remaining block if there is space
             remainingMemStart = endMem + 1
             if remainingMemStart < remainingMemEnd:
                 remainingBlock = Process(None, None, None, None, remainingMemStart, remainingMemEnd)
                 self.memoryMap.insert(worstFitIndex + 1, remainingBlock)
 
-            return 0  # Allocation successful
+            return 0  # success
 
-        return -1  # Not enough memory or suitable block not found
+        return -1  # failure
 
     def deallocate(self, processToDeallocate):
-        # Find the process to deallocate
+
         processIndex = -1
 
+        # find process to deallocate
         for i, process in enumerate(self.memoryMap):
             if process.id == processToDeallocate.id:
                 processIndex = i
                 break
         
-        # If the process is not found, return
+        # if the process is not found, its an error
         if processIndex == -1:
             print(f"Process {processToDeallocate.id} not found.", end = "\n\t")
             return
@@ -117,15 +120,19 @@ class ContiguousMemoryManager:
             if self.memoryMap[i].id is None:
                 firstHole = i
 
+                # while there are consecutive holes, count them
                 while(i < len(self.memoryMap) and self.memoryMap[i].id == None):
                     consecutiveHoles += 1
                     i += 1
                 i -= 1
                 start = self.memoryMap[firstHole].startMemory
                 end = self.memoryMap[i].endMemory
+
+                # work our way back to i removing the extras
                 while i > firstHole:
                     self.memoryMap.pop(i)
                     i -= 1
+                # update the remaining one to have the right end location
                 self.memoryMap[i] = Process(None, None, None, None, start, end)
             if i == len(self.memoryMap) - 1:
                 return

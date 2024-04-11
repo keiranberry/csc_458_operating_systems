@@ -6,13 +6,15 @@ def readFile(filename):
     inputQueue = []
     lastBlank = False
     with open(filename, 'r') as file:
-        lines = file.readlines()[1:]  # Skip the first line
+        lines = file.readlines()[1:]  # skip the first line since we dynamically size
         processData = []
         for line in lines:
-            if line.strip():  # Skip blank lines
+            if line.strip(): 
                 processData.append(line.strip())
                 lastBlank = False
             else:
+                # processes are separated by a new line so this is the indication to fill in a process
+                # lastBlank is set up in case there are multiple newlines at the end of a file
                 if lastBlank:
                     break
                 id = int(processData[0])
@@ -23,6 +25,7 @@ def readFile(filename):
                 processData = []
                 lastBlank = True
 
+        # this covers the edge case in which there are no new lines at eof
         if processData != []:
             id = int(processData[0])
             arrival, timeInMem = map(int, processData[1].split())
@@ -45,14 +48,13 @@ def main():
         frameSize = input("Page size: ")
         simulation = DiscreteEventSimulation(memSize, "PAG", frameSize)
 
-    # Read workload file
+    # read file in
     filename = input("Enter workload file name: ")
     input_queue = readFile(filename)
 
     for process in input_queue:
         simulation.schedule_event(Event(process.arrivalTime, 'PROCESS_ARRIVAL', process))
 
-    # Run simulation
     simulation.run_simulation()
 
 
