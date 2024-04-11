@@ -1,9 +1,8 @@
 from queue import PriorityQueue
-from process import Process
-from memoryManager import PagingMemoryManager
-from memoryManager import ContiguousMemoryManager
-from memoryManager import SegmentationMemoryManager
-import math
+from Process import Process
+from PagingMemoryManager import PagingMemoryManager
+from ContiguousMemoryManager import ContiguousMemoryManager
+from SegmentationMemoryManager import SegmentationMemoryManager
 
 class DiscreteEventSimulation:
     def __init__(self, totalMemory, managerType, extraInfo):
@@ -85,7 +84,13 @@ class DiscreteEventSimulation:
         
         total = sum(self.turnaroundTimes)
         average = total / len(self.turnaroundTimes)
-        return round(average, 1)
+        
+        # check if the second decimal place is nonzero
+        if round(average * 100) % 10 != 0:
+            return round(average, 2)  # if it is, return the average rounded to 2 places
+        else:
+            return round(average, 1)  # otherwise round it to one place
+
 
 
 

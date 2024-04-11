@@ -1,22 +1,34 @@
-from process import Process
-from discreteEventSimulation import DiscreteEventSimulation
-from discreteEventSimulation import Event
+from Process import Process
+from DiscreteEventSimulation import DiscreteEventSimulation
+from DiscreteEventSimulation import Event
 
 def readFile(filename):
     inputQueue = []
+    lastBlank = False
     with open(filename, 'r') as file:
         lines = file.readlines()[1:]  # Skip the first line
         processData = []
         for line in lines:
             if line.strip():  # Skip blank lines
                 processData.append(line.strip())
+                lastBlank = False
             else:
+                if lastBlank:
+                    break
                 id = int(processData[0])
                 arrival, timeInMem = map(int, processData[1].split())
                 memArraySize, *memArrayData = map(int, processData[2].split())
                 memArray = memArrayData[:memArraySize]
                 inputQueue.append(Process(id, arrival, timeInMem, memArray))
                 processData = []
+                lastBlank = True
+
+        if processData != []:
+            id = int(processData[0])
+            arrival, timeInMem = map(int, processData[1].split())
+            memArraySize, *memArrayData = map(int, processData[2].split())
+            memArray = memArrayData[:memArraySize]
+            inputQueue.append(Process(id, arrival, timeInMem, memArray))
     return inputQueue
 
 def main():
