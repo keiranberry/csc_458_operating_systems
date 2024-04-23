@@ -9,6 +9,7 @@
 #include <string.h>
 #include <stdlib.h>
 #include <unistd.h>
+#include <time.h>
 //function to print usage statement and exit
 void printUsageAndExit();
 
@@ -21,5 +22,7 @@ void listRootDirectory(const sfs_superblock* super);
 //function to long list root directory
 void longListRootDirectory(const sfs_superblock* super);
 
+//function to print time
+void print_time(uint32_t timestamp);
 
 #endif
