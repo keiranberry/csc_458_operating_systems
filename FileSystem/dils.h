@@ -18,5 +18,8 @@ void getFileBlock(sfs_inode_t* n, uint32_t blknum, char *data);
 //function to list root directory
 void listRootDirectory(const sfs_superblock* super);
 
+//function to long list root directory
+void longListRootDirectory(const sfs_superblock* super);
+
 
 #endif

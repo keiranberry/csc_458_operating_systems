@@ -8,14 +8,17 @@ int main(int argc, char** argv)
     char raw_superblock[BLOCK_SIZE]; // declare a buffer that is the same size as a filesystem block
     sfs_superblock *super = (sfs_superblock *)raw_superblock; // Create a pointer to the buffer
     char* diskImageName;
+    int shortListing = 0;
+    int longListing = 0;
 
     if(argc == 2){
         diskImageName = argv[1];
+        shortListing = 1;
     }
     else if(argc == 3){
         if(strcmp(argv[2], "-l") == 0){
             diskImageName = argv[1];
-            printf("this should list later\n");
+            longListing = 1;
         }
         else{
             printUsageAndExit();
@@ -38,9 +41,8 @@ int main(int argc, char** argv)
         // check if it's the filesystem superblock
         if (super->fsmagic == VMLARIX_SFS_MAGIC &&
             !strcmp(super->fstypestr, VMLARIX_SFS_TYPESTR)) {
-        printf("Superblock found at block %d!\n", block_number);
-        superblock_found = 1;
-        break; // exit the loop since superblock is found
+            superblock_found = 1;
+            break; // exit the loop since superblock is found
         }
 
         block_number++;
@@ -48,9 +50,18 @@ int main(int argc, char** argv)
 
     if (!superblock_found) {
         printf("Superblock not found in the disk image.\n");
+        driver_detach_disk_image();
+        exit(1);
     }
-
-    listRootDirectory(super);
+    else if(shortListing){
+        listRootDirectory(super);
+    }
+    else if(longListing){
+        longListRootDirectory(super);
+    }
+    else{
+        printf("An error occurred.");
+    }
 
     // close the disk image
     driver_detach_disk_image();
@@ -65,12 +76,17 @@ void printUsageAndExit(){
 
 void listRootDirectory(const sfs_superblock* super) {
     char buff[BLOCK_SIZE];
-
     sfs_inode_t* rootDirNode = (sfs_inode_t*)buff;
-
     driver_read(rootDirNode, super->inodes);
+
+    int numBlocks = rootDirNode->size / BLOCK_SIZE;
+    if(rootDirNode->size %128 != 0){
+        numBlocks++;
+    }
+
+
     char* currData = (char*)malloc(BLOCK_SIZE);
-    char* fileData = (char*)malloc(sizeof(char) * rootDirNode->size);
+    char* fileData = (char*)malloc(numBlocks * BLOCK_SIZE);
     int currSize = 0;
 
     int blockNum = rootDirNode->size / 128;
@@ -92,6 +108,54 @@ void listRootDirectory(const sfs_superblock* super) {
         entries++;
     }
 
+    free(currData);
+    free(fileData);
+}
+
+void longListRootDirectory(const sfs_superblock* super) {
+    char buff[BLOCK_SIZE];
+
+    sfs_inode_t* rootDirNode = (sfs_inode_t*)buff;
+    driver_read(rootDirNode, super->inodes);
+    int numBlocks = rootDirNode->size / BLOCK_SIZE;
+    if(rootDirNode->size % BLOCK_SIZE != 0){
+        numBlocks++;
+    }
+
+    char* currData = (char*)malloc(sizeof(char) * BLOCK_SIZE);
+    char* fileData = (char*)malloc(sizeof(char) * (numBlocks * BLOCK_SIZE));
+    int currSize = 0;
+
+    int blockNum = rootDirNode->size / 128;
+    if(rootDirNode->size % 128){
+        blockNum++;
+    }
+
+    for(int i = 0; i < blockNum; i++){
+        getFileBlock(rootDirNode, i, currData);
+        memcpy(fileData + currSize, currData, BLOCK_SIZE);
+        currSize += BLOCK_SIZE;
+    }
+
+    int amountDirEntries = rootDirNode->size / sizeof(sfs_dirent);
+    sfs_dirent* entries = (sfs_dirent*)fileData;
+    uint32_t currNode = 0;
+    int temp = 0;
+    sfs_inode_t* inode = (sfs_inode_t*)malloc(sizeof(sfs_inode_t));
+
+    printf("amountdirentries: %d\n", amountDirEntries);
+
+    for(int i = 0; i < amountDirEntries; i++){
+        printf("%d", i);
+        currNode = entries->inode;
+        temp = currNode/2;
+        driver_read(inode, super->inodes + temp);
+        if(currNode % 2 != 0){
+            inode++;
+        }
+        printf("%s %ld %d\n", entries->name, inode->size, inode->owner);
+        entries++;
+    }
     free(currData);
     free(fileData);
 }
