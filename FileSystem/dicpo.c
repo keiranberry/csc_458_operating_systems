@@ -132,57 +132,6 @@ void writeFileFromDisk(const sfs_superblock* super, char* fileName) {
     free(fileContent);
 }
 
-// void copyToWorkingDirectory(const sfs_superblock* super, char* fileName){
-//     char buff[BLOCK_SIZE];
-
-//     sfs_inode_t* rootDirNode = (sfs_inode_t*)buff;
-//     driver_read(rootDirNode, super->inodes);        //root is at inode[0]
-//     int numBlocks = rootDirNode->size / BLOCK_SIZE; //get number of blocks
-//     if(rootDirNode->size % BLOCK_SIZE != 0){
-//         numBlocks++;                                //if its not a full block, top it off
-//     }
-
-//     //currdata is one block, fileData is all of them
-//     char* currData = (char*)malloc(sizeof(char) * BLOCK_SIZE);
-//     char* fileData = (char*)malloc(sizeof(char) * (numBlocks * BLOCK_SIZE));
-//     int currSize = 0;
-
-//     for(int i = 0; i < numBlocks; i++){
-//         getFileBlock(rootDirNode, i, currData);
-//         memcpy(fileData + currSize, currData, BLOCK_SIZE);
-//         currSize += BLOCK_SIZE;
-//     }
-
-//     int amountDirEntries = rootDirNode->size / sizeof(sfs_dirent);
-//     sfs_dirent* entries = (sfs_dirent*)fileData;
-//     uint32_t currNode = 0;
-//     int temp = 0;
-//     sfs_inode_t* inode = (sfs_inode_t*)calloc(sizeof(sfs_inode_t), sizeof(sfs_inode_t));
-//     int i;
-
-//     for(i = 0; i < amountDirEntries; i++){
-//         if(strcmp(entries->name, fileName) != 0){
-//             entries++;
-//             continue;
-//         }
-//         currNode = entries->inode;
-//         temp = currNode/2;
-//         driver_read(inode, super->inodes + temp);
-//         if(currNode % 2 != 0){
-//             inode++;
-//         }
-
-//         break;
-//     }
-
-//     if(i == amountDirEntries){
-//         printf("The file %s could not be found in the disk image", fileName);
-//         exit(1);
-//     }
-//     free(currData);
-//     free(fileData);
-// }
-
 //if the block size doubles then we are using 64 instead of 32 for all of this 
 void getFileBlock(sfs_inode_t* n, uint32_t blknum, char *data){
     uint32_t ptrs[32];
@@ -197,7 +146,6 @@ void getFileBlock(sfs_inode_t* n, uint32_t blknum, char *data){
     else if(blknum < 1061){ //5 + 32 + 1024
         driver_read(ptrs, n->dindirect);
         tmp = (blknum - 5 - 32) / 32;
-        tmp = ptrs[tmp];
         driver_read(ptrs, ptrs[tmp]);
         tmp = (blknum - 5 - 32) % 32;
         driver_read(data, ptrs[tmp]);

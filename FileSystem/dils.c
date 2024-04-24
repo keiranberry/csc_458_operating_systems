@@ -193,7 +193,6 @@ void getFileBlock(sfs_inode_t* n, uint32_t blknum, char *data){
     else if(blknum < 1061){ //5 + 32 + 1024
         driver_read(ptrs, n->dindirect);
         tmp = (blknum - 5 - 32) / 32;
-        tmp = ptrs[tmp];
         driver_read(ptrs, ptrs[tmp]);
         tmp = (blknum - 5 - 32) % 32;
         driver_read(data, ptrs[tmp]);
