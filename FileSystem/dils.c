@@ -1,8 +1,5 @@
 #include <dils.h>
 
-#define BLOCK_SIZE 128
-#define NUM_BLOCKS 128
-
 int main(int argc, char** argv)
 {
     char raw_superblock[BLOCK_SIZE]; // declare a buffer that is the same size as a filesystem block
@@ -171,7 +168,7 @@ void longListRootDirectory(const sfs_superblock* super) {
         // print everything up until time
         printf("%c%s %6d %6d %6u %6ld  ", type, permissions, inode->refcount, inode->owner, inode->group, inode->size);
 
-        print_time(inode->mtime);
+        print_time(inode->atime);
 
         // File name
         printf("%s\n", entries->name);
