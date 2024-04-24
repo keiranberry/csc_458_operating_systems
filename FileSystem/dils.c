@@ -167,7 +167,6 @@ void longListRootDirectory(const sfs_superblock* super) {
 
         // print everything up until time
         printf("%c%s %6d %6d %6u %6ld  ", type, permissions, inode->refcount, inode->owner, inode->group, inode->size);
-
         print_time(inode->atime);
 
         // File name
@@ -181,31 +180,31 @@ void longListRootDirectory(const sfs_superblock* super) {
 
 //if the block size doubles then we are using 64 instead of 32 for all of this 
 void getFileBlock(sfs_inode_t* n, uint32_t blknum, char *data){
-    uint32_t ptrs[32];
+    uint32_t ptrs[NUM_INDIRECT];
     uint32_t tmp;
-    if(blknum < 5){
+    if(blknum < NUM_DIRECT){
         driver_read(data, n->direct[blknum]);
     }
-    else if(blknum < 37){
+    else if(blknum < NUM_DIRECT + NUM_INDIRECT){
         driver_read(ptrs, n->indirect);
-        driver_read(data, ptrs[blknum - 5]);
+        driver_read(data, ptrs[blknum - NUM_DIRECT]);
     }
-    else if(blknum < 1061){ //5 + 32 + 1024
+    else if(blknum < NUM_DIRECT + NUM_INDIRECT + NUM_DINDIRECT){ //5 + 32 + 1024
         driver_read(ptrs, n->dindirect);
-        tmp = (blknum - 5 - 32) / 32;
+        tmp = (blknum - NUM_DIRECT - NUM_INDIRECT) / NUM_INDIRECT;
         driver_read(ptrs, ptrs[tmp]);
-        tmp = (blknum - 5 - 32) % 32;
+        tmp = (blknum - NUM_DIRECT - NUM_INDIRECT) % NUM_INDIRECT;
         driver_read(data, ptrs[tmp]);
     }
-    else if (blknum < 33829){ //5 + 32 + 1024 + 32^3
+    else if (blknum < NUM_DIRECT + NUM_INDIRECT + NUM_DINDIRECT + NUM_TINDIRECT){ //5 + 32 + 1024 + 32^3
         driver_read(ptrs, n->tindirect);
-        tmp = (blknum - 5 - 32 - 1024) / (32 * 32);
+        tmp = (blknum - NUM_DIRECT - NUM_INDIRECT - NUM_DINDIRECT) / (NUM_INDIRECT * NUM_INDIRECT);
         tmp = ptrs[tmp];
         driver_read(ptrs, tmp);
-        tmp = (blknum - 5 - 32 - 1024) / 32 % 32;
+        tmp = (blknum - NUM_DIRECT - NUM_INDIRECT - NUM_DINDIRECT) / NUM_INDIRECT % NUM_INDIRECT;
         tmp = ptrs[tmp];
         driver_read(ptrs, tmp);
-        tmp = (blknum - 5 - 32 - 1024) % 32;
+        tmp = (blknum - NUM_DIRECT - NUM_INDIRECT - NUM_DINDIRECT) % NUM_INDIRECT;
         driver_read(data, ptrs[tmp]);
     }
 }
@@ -214,11 +213,11 @@ void print_time(uint32_t timestamp) {
     struct tm *tm_info;
     time_t time_value = (time_t)timestamp;
 
-    tm_info = gmtime(&time_value);
+    tm_info = localtime(&time_value);
 
     // convert struct to time string
     char buffer[30];
-    strftime(buffer, sizeof(buffer), "%a %b %d %H:%M:%S %Y", tm_info);
+    strftime(buffer, sizeof(buffer), "%a %b %d %H:%M %Y", tm_info);
 
     printf("%s ", buffer);
 }

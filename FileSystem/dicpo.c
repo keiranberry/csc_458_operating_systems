@@ -57,18 +57,18 @@ void printUsageAndExit(){
 void writeFileFromDisk(const sfs_superblock* super, char* fileName) {
     char buff[BLOCK_SIZE];
     sfs_inode_t* rootDirNode = (sfs_inode_t*)buff;
-    driver_read(rootDirNode, super->inodes); // Read the root directory inode
+    driver_read(rootDirNode, super->inodes); // root directory inode
 
     int numBlocks = rootDirNode->size / BLOCK_SIZE;
     if(rootDirNode->size % BLOCK_SIZE != 0){
         numBlocks++;
     }
 
-    char* currData = (char*)malloc(BLOCK_SIZE); // Allocate buffer for reading block data
-    char* fileData = (char*)malloc(numBlocks * BLOCK_SIZE); // Allocate buffer for file data
+    char* currData = (char*)malloc(BLOCK_SIZE); //buffer for current block of data
+    char* fileData = (char*)malloc(numBlocks * BLOCK_SIZE); // buffer for file data
     int currSize = 0;
 
-    // Read all blocks of the root directory into fileData
+    // read in root directory
     for(int i = 0; i < numBlocks; i++){
         getFileBlock(rootDirNode, i, currData);
         memcpy(fileData + currSize, currData, BLOCK_SIZE);
@@ -81,7 +81,7 @@ void writeFileFromDisk(const sfs_superblock* super, char* fileName) {
     int temp = 0;
     sfs_inode_t* inode = (sfs_inode_t*)calloc(sizeof(sfs_inode_t), sizeof(sfs_inode_t));
 
-    // Find the inode corresponding to the file name
+    // find the inode for the file 
     for(int i = 0; i < amountDirEntries; i++){
         if(strcmp(entries->name, fileName) == 0){
             currNode = entries->inode;
@@ -95,38 +95,36 @@ void writeFileFromDisk(const sfs_superblock* super, char* fileName) {
         entries++;
     }
 
-    // If file not found, exit
+    // if the file isn't found, it's an error
     if(currNode == 0) {
         printf("File %s not found in the disk image.\n", fileName);
         exit(1);
     }
 
-    // Calculate number of blocks needed to store the file
+    // calculate blocks needed
     int numFileBlocks = inode->size / BLOCK_SIZE;
     if(inode->size % BLOCK_SIZE != 0){
         numFileBlocks++;
     }
 
-    // Allocate buffer for file content
     char* fileContent = (char*)malloc(numFileBlocks * BLOCK_SIZE);
 
-    // Read each block of the file into fileContent
+    // read each block into fileContent
     for(int i = 0; i < numFileBlocks; i++){
         getFileBlock(inode, i, currData);
         memcpy(fileContent + (i * BLOCK_SIZE), currData, BLOCK_SIZE);
     }
 
-    // Write the file content to a new file in the working directory
     FILE *fp = fopen(fileName, "wb");
     if (fp == NULL) {
         printf("Error opening file for writing.\n");
         exit(1);
     }
 
-    fwrite(fileContent, sizeof(char), inode->size, fp); // Write file content to the file
+    fwrite(fileContent, sizeof(char), inode->size, fp); //write to the file
     fclose(fp);
 
-    // Free allocated memory
+    // free allocated memory
     free(currData);
     free(fileData);
     free(fileContent);
@@ -134,31 +132,31 @@ void writeFileFromDisk(const sfs_superblock* super, char* fileName) {
 
 //if the block size doubles then we are using 64 instead of 32 for all of this 
 void getFileBlock(sfs_inode_t* n, uint32_t blknum, char *data){
-    uint32_t ptrs[32];
+    uint32_t ptrs[NUM_INDIRECT];
     uint32_t tmp;
-    if(blknum < 5){
+    if(blknum < NUM_DIRECT){
         driver_read(data, n->direct[blknum]);
     }
-    else if(blknum < 37){
+    else if(blknum < NUM_DIRECT + NUM_INDIRECT){
         driver_read(ptrs, n->indirect);
-        driver_read(data, ptrs[blknum - 5]);
+        driver_read(data, ptrs[blknum - NUM_DIRECT]);
     }
-    else if(blknum < 1061){ //5 + 32 + 1024
+    else if(blknum < NUM_DIRECT + NUM_INDIRECT + NUM_DINDIRECT){ //5 + 32 + 1024
         driver_read(ptrs, n->dindirect);
-        tmp = (blknum - 5 - 32) / 32;
+        tmp = (blknum - NUM_DIRECT - NUM_INDIRECT) / NUM_INDIRECT;
         driver_read(ptrs, ptrs[tmp]);
-        tmp = (blknum - 5 - 32) % 32;
+        tmp = (blknum - NUM_DIRECT - NUM_INDIRECT) % NUM_INDIRECT;
         driver_read(data, ptrs[tmp]);
     }
-    else if (blknum < 33829){ //5 + 32 + 1024 + 32^3
+    else if (blknum < NUM_DIRECT + NUM_INDIRECT + NUM_DINDIRECT + NUM_TINDIRECT){ //5 + 32 + 1024 + 32^3
         driver_read(ptrs, n->tindirect);
-        tmp = (blknum - 5 - 32 - 1024) / (32 * 32);
+        tmp = (blknum - NUM_DIRECT - NUM_INDIRECT - NUM_DINDIRECT) / (NUM_INDIRECT * NUM_INDIRECT);
         tmp = ptrs[tmp];
         driver_read(ptrs, tmp);
-        tmp = (blknum - 5 - 32 - 1024) / 32 % 32;
+        tmp = (blknum - NUM_DIRECT - NUM_INDIRECT - NUM_DINDIRECT) / NUM_INDIRECT % NUM_INDIRECT;
         tmp = ptrs[tmp];
         driver_read(ptrs, tmp);
-        tmp = (blknum - 5 - 32 - 1024) % 32;
+        tmp = (blknum - NUM_DIRECT - NUM_INDIRECT - NUM_DINDIRECT) % NUM_INDIRECT;
         driver_read(data, ptrs[tmp]);
     }
 }
